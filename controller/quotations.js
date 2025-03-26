@@ -143,167 +143,167 @@ class Quotations {
   // }
   // }
 // correct
-//   async createQuotations(req, res) {
-//     const session = await mongoose.startSession();
-//     session.startTransaction();
+  async createQuotations(req, res) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-//     try {
-//       const {
-//         clientId,
-//         quoteDate,
-//         endDate,
-//         quoteTime,
-//         clientName,
-//         clientNo,
-//         address,
-//         Products,
-//         category,
-//         status,
-//         GrandTotal,
-//         adjustments,
-//         discount,
-//         termsandCondition,
-//         GST,
-//         executivename,
-//         placeaddress,
-//         slots,
-//       } = req.body;
-//  console.log( clientId,
-//   quoteDate,
-//   endDate,
-//   quoteTime,
-//   clientName,
-//   clientNo,
-//   address,
-//   Products,
-//   category,
-//   status,
-//   GrandTotal,
-//   adjustments,
-//   discount,
-//   termsandCondition,
-//   GST,
-//   executivename,
-//   placeaddress,
-//   slots,)
-//   // Generate the next quotation ID
-//       const latestQuotation = await Quotationmodel.findOne()
-//         .sort({ _id: -1 })
-//         .session(session);
-//       const nextQuoteId = latestQuotation
-//         ? `QT${(parseInt(latestQuotation.quoteId.replace("QT", ""), 10) + 1)
-//             .toString()
-//             .padStart(4, "0")}`
-//         : "QT0001";
+    try {
+      const {
+        clientId,
+        quoteDate,
+        endDate,
+        quoteTime,
+        clientName,
+        clientNo,
+        address,
+        Products,
+        category,
+        status,
+        GrandTotal,
+        adjustments,
+        discount,
+        termsandCondition,
+        GST,
+        executivename,
+        placeaddress,
+        slots,
+      } = req.body;
+ console.log( clientId,
+  quoteDate,
+  endDate,
+  quoteTime,
+  clientName,
+  clientNo,
+  address,
+  Products,
+  category,
+  status,
+  GrandTotal,
+  adjustments,
+  discount,
+  termsandCondition,
+  GST,
+  executivename,
+  placeaddress,
+  slots,)
+  // Generate the next quotation ID
+      const latestQuotation = await Quotationmodel.findOne()
+        .sort({ _id: -1 })
+        .session(session);
+      const nextQuoteId = latestQuotation
+        ? `QT${(parseInt(latestQuotation.quoteId.replace("QT", ""), 10) + 1)
+            .toString()
+            .padStart(4, "0")}`
+        : "QT0001";
 
-//       // Create the new quotation
-//       const newQuotation = new Quotationmodel({
-//         clientId,
-//         quoteId: nextQuoteId,
-//         clientName,
-//         Products,
-//         clientNo,
-//         address,
-//         category,
-//         quoteDate,
-//         quoteTime,
-//         termsandCondition,
-//         GrandTotal,
-//         adjustments,
-//         discount,
-//         GST,
-//         status,
-//         executivename,
-//         endDate,
-//         placeaddress,
-//         slots,
-//       });
+      // Create the new quotation
+      const newQuotation = new Quotationmodel({
+        clientId,
+        quoteId: nextQuoteId,
+        clientName,
+        Products,
+        clientNo,
+        address,
+        category,
+        quoteDate,
+        quoteTime,
+        termsandCondition,
+        GrandTotal,
+        adjustments,
+        discount,
+        GST,
+        status,
+        executivename,
+        endDate,
+        placeaddress,
+        slots,
+      });
 
-//       const savedQuotation = await newQuotation.save({ session });
+      const savedQuotation = await newQuotation.save({ session });
 
-//       // Update inventory for slots and products
-//       for (const slot of slots) {
-//         const { Products, slotName } = slot;
+      // Update inventory for slots and products
+      for (const slot of slots) {
+        const { Products, slotName } = slot;
 
-//         for (const product of Products) {
-//           const { productId, quantity, StockAvailable } = product;
-//           console.log(productId, quantity, StockAvailable,"HHH")
+        for (const product of Products) {
+          const { productId, quantity, StockAvailable } = product;
+          console.log(productId, quantity, StockAvailable,"HHH")
 
-//           // Fetch overlapping reservations for the requested date range and slot
-//           const overlappingReservations = await InventoryModel.find({
-//             productId,
-//             $or: [
-//               {
-//                 startdate: { $lte: endDate },
-//                 enddate: { $gte: quoteDate },
-//               },
-//             ],
-//             slot: slotName,
-//           }).session(session);
+          // Fetch overlapping reservations for the requested date range and slot
+          const overlappingReservations = await InventoryModel.find({
+            productId,
+            $or: [
+              {
+                startdate: { $lte: endDate },
+                enddate: { $gte: quoteDate },
+              },
+            ],
+            slot: slotName,
+          }).session(session);
 
-//           let totalReservedQty = overlappingReservations.reduce(
-//             (sum, reservation) => sum + reservation.reservedQty,
-//             0
-//           );
+          let totalReservedQty = overlappingReservations.reduce(
+            (sum, reservation) => sum + reservation.reservedQty,
+            0
+          );
 
-//           // Calculate available stock based on reservations
-//           const availableStock = StockAvailable - totalReservedQty;
+          // Calculate available stock based on reservations
+          const availableStock = StockAvailable - totalReservedQty;
 
-//           // if (availableStock < quantity) {
-//           //     throw new Error(
-//           //         `Insufficient stock for product: ${product.productName} in slot: ${slotName}. Only ${availableStock} available due to overlapping reservations.`
-//           //     );
-//           // }
-//           if (availableStock < quantity) {
-//             throw new Error(
-//               `Insufficient stock for product: ${product.productName} in slot: ${slotName}. Only ${availableStock} available for the requested date range: ${quoteDate} to ${endDate}, due to overlapping reservations.`
-//             );
-//           }
+          // if (availableStock < quantity) {
+          //     throw new Error(
+          //         `Insufficient stock for product: ${product.productName} in slot: ${slotName}. Only ${availableStock} available due to overlapping reservations.`
+          //     );
+          // }
+          if (availableStock < quantity) {
+            throw new Error(
+              `Insufficient stock for product: ${product.productName} in slot: ${slotName}. Only ${availableStock} available for the requested date range: ${quoteDate} to ${endDate}, due to overlapping reservations.`
+            );
+          }
 
-//           // Update or create inventory for the current slot
-//           const existingInventory = await InventoryModel.findOne({
-//             productId,
-//             startdate: quoteDate,
-//             enddate: endDate,
-//             slot: slotName,
-//           }).session(session);
+          // Update or create inventory for the current slot
+          const existingInventory = await InventoryModel.findOne({
+            productId,
+            startdate: quoteDate,
+            enddate: endDate,
+            slot: slotName,
+          }).session(session);
 
-//           if (existingInventory) {
-//             existingInventory.reservedQty += quantity;
-//             existingInventory.availableQty = availableStock - quantity;
-//             await existingInventory.save({ session });
-//           } else {
-//             const newInventory = new InventoryModel({
-//               productId,
-//               startdate: quoteDate,
-//               enddate: endDate,
-//               slot: slotName,
-//               reservedQty: quantity,
-//               availableQty: availableStock - quantity,
-//             });
+          if (existingInventory) {
+            existingInventory.reservedQty += quantity;
+            existingInventory.availableQty = availableStock - quantity;
+            await existingInventory.save({ session });
+          } else {
+            const newInventory = new InventoryModel({
+              productId,
+              startdate: quoteDate,
+              enddate: endDate,
+              slot: slotName,
+              reservedQty: quantity,
+              availableQty: availableStock - quantity,
+            });
 
-//             await newInventory.save({ session });
-//           }
-//         }
-//       }
+            await newInventory.save({ session });
+          }
+        }
+      }
 
-//       // Commit the transaction
-//       await session.commitTransaction();
-//       session.endSession();
+      // Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
 
-//       return res.json({
-//         success: "Quotation created and inventory updated successfully",
-//       });
-//     } catch (error) {
-//       // Abort the transaction in case of an error
-//       await session.abortTransaction();
-//       session.endSession();
-//       console.error("Error creating quotation:", error);
-//       return res
-//         .status(500)
-//         .json({ error: error.message || "Failed to create Quotation" });
-//     }
-//   }
+      return res.json({
+        success: "Quotation created and inventory updated successfully",
+      });
+    } catch (error) {
+      // Abort the transaction in case of an error
+      await session.abortTransaction();
+      session.endSession();
+      console.error("Error creating quotation:", error);
+      return res
+        .status(500)
+        .json({ error: error.message || "Failed to create Quotation" });
+    }
+  }
 // 15-03-25
 
 
@@ -1529,221 +1529,7 @@ class Quotations {
     }
   }
 
-  // addonthersproductsameslote
-  // async addOntherProductsToSlotstwo(req, res) {
-  //   const { id, slots } = req.body;
-
-  //   console.log("Request Data:", { id, slots });
-
-  //   try {
-  //     // Find the quotation by quoteId
-  //     const quotation = await Quotationmodel.findOne({ quoteId: id });
-
-  //     if (!quotation) {
-  //       return res.status(404).json({ error: "Quotation not found" });
-  //     }
-
-  //     // Validate slots array
-  //     if (!Array.isArray(slots) || slots.length === 0) {
-  //       return res.status(400).json({ error: "Slots must be a non-empty array" });
-  //     }
-
-  //     slots.forEach((newSlot) => {
-  //       const existingSlotIndex = quotation.slots.findIndex(
-  //         (slot) => slot.slotName === newSlot.slotName
-  //       );
-
-  //       if (existingSlotIndex === -1) {
-  //         throw new Error(`Slot ${newSlot.slotName} does not exist.`);
-  //       }
-
-  //       const existingProducts = Array.isArray(
-  //         quotation.slots[existingSlotIndex].Products
-  //       )
-  //         ? quotation.slots[existingSlotIndex].Products
-  //         : [];
-
-  //       const newProducts = Array.isArray(newSlot.Products) ? newSlot.Products : [];
-
-  //       newProducts.forEach((newProduct) => {
-  //         const productQuantity = Number(newProduct.quantity);
-  //         const productPrice = Number(newProduct.price);
-  //         const stockAvailable = Number(newProduct.StockAvailable || 0);
-
-  //         if (isNaN(productQuantity) || isNaN(productPrice) || isNaN(stockAvailable)) {
-  //           console.error(`Invalid product data: ${JSON.stringify(newProduct)}`);
-  //           return; // Skip invalid product
-  //         }
-
-  //         const existingProductIndex = existingProducts.findIndex(
-  //           (product) => product.productId === newProduct.productId
-  //         );
-
-  //         if (existingProductIndex === -1) {
-  //           // Add the product as a new entry
-  //           existingProducts.push({
-  //             productId: newProduct.productId,
-  //             productName: newProduct.productName || "New Product",
-  //             quantity: productQuantity,
-  //             price: productPrice,
-  //             total: productQuantity * productPrice,
-  //             StockAvailable: Math.max(stockAvailable - productQuantity, 0),
-  //           });
-  //         }
-  //       });
-
-  //       // Update the slot with updated products
-  //       quotation.slots[existingSlotIndex].Products = existingProducts;
-  //     });
-
-  //     // Recalculate the GrandTotal
-  //     const updatedGrandTotal = quotation.slots.reduce((total, slot) => {
-  //       const slotTotal = slot.Products.reduce((sum, product) => {
-  //         const productTotal = Number(product.total) || 0;
-  //         return sum + productTotal;
-  //       }, 0);
-  //       return total + slotTotal;
-  //     }, 0);
-
-  //     if (isNaN(updatedGrandTotal)) {
-  //       throw new Error("Invalid GrandTotal calculation");
-  //     }
-
-  //     quotation.GrandTotal = updatedGrandTotal;
-
-  //     // Save the updated quotation
-  //     const updatedQuotation = await quotation.save();
-
-  //     return res.status(200).json({
-  //       success: "Products added successfully to slots",
-  //       data: updatedQuotation,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error adding products to slots:", error.message);
-  //     return res
-  //       .status(500)
-  //       .json({ error: error.message || "Failed to add products to slots" });
-  //   }
-  // }
-
-  // coment this code without inventory+++++
-  // async addOntherProductsToSlotstwo(req, res) {
-  //   const { id, slots } = req.body;
-
-  //   console.log("Request Data:", { id, slots });
-
-  //   try {
-  //     // Find the quotation by quoteId
-  //     const quotation = await Quotationmodel.findOne({ quoteId: id });
-
-  //     if (!quotation) {
-  //       return res.status(404).json({ error: "Quotation not found" });
-  //     }
-
-  //     // Validate slots array
-  //     if (!Array.isArray(slots) || slots.length === 0) {
-  //       return res.status(400).json({ error: "Slots must be a non-empty array" });
-  //     }
-
-  //     slots.forEach((newSlot) => {
-  //       const existingSlotIndex = quotation.slots.findIndex(
-  //         (slot) => slot.slotName === newSlot.slotName
-  //       );
-
-  //       if (existingSlotIndex === -1) {
-  //         throw new Error(`Slot ${newSlot.slotName} does not exist.`);
-  //       }
-
-  //       const existingProducts = Array.isArray(
-  //         quotation.slots[existingSlotIndex].Products
-  //       )
-  //         ? quotation.slots[existingSlotIndex].Products
-  //         : [];
-
-  //       const newProducts = Array.isArray(newSlot.Products) ? newSlot.Products : [];
-
-  //       newProducts.forEach((newProduct) => {
-  //         const productQuantity = Number(newProduct.quantity);
-  //         const productPrice = Number(newProduct.price);
-  //         const stockAvailable = Number(newProduct.StockAvailable || 0);
-
-  //         // Log for debugging
-  //         console.log("Processing Product:", {
-  //           productId: newProduct.productId,
-  //           stockAvailable,
-  //           productQuantity,
-  //         });
-
-  //         if (
-  //           isNaN(productQuantity) ||
-  //           isNaN(productPrice) ||
-  //           isNaN(stockAvailable)
-  //         ) {
-  //           console.error(`Invalid product data: ${JSON.stringify(newProduct)}`);
-  //           return; // Skip invalid product
-  //         }
-
-  //         const existingProductIndex = existingProducts.findIndex(
-  //           (product) => product.productId === newProduct.productId
-  //         );
-
-  //         if (existingProductIndex === -1) {
-  //           // Add the product as a new entry
-  //           existingProducts.push({
-  //             productId: newProduct.productId,
-  //             productName: newProduct.productName || "New Product",
-  //             quantity: productQuantity,
-  //             price: productPrice,
-  //             total: productQuantity * productPrice,
-  //             StockAvailable:
-  //               stockAvailable >= productQuantity
-  //                 ? stockAvailable - productQuantity
-  //                 : stockAvailable, // Only subtract if stock is sufficient
-  //           });
-  //         } else {
-  //           // If product exists, optionally update stock or quantity
-  //           console.log(
-  //             `Product ${newProduct.productId} already exists in slot ${newSlot.slotName}, skipping.`
-  //           );
-  //         }
-  //       });
-
-  //       // Update the slot with updated products
-  //       quotation.slots[existingSlotIndex].Products = existingProducts;
-  //     });
-
-  //     // Recalculate the GrandTotal
-  //     const updatedGrandTotal = quotation.slots.reduce((total, slot) => {
-  //       const slotTotal = slot.Products.reduce((sum, product) => {
-  //         const productTotal = Number(product.total) || 0;
-  //         return sum + productTotal;
-  //       }, 0);
-  //       return total + slotTotal;
-  //     }, 0);
-
-  //     if (isNaN(updatedGrandTotal)) {
-  //       throw new Error("Invalid GrandTotal calculation");
-  //     }
-
-  //     quotation.GrandTotal = updatedGrandTotal;
-
-  //     // Save the updated quotation
-  //     const updatedQuotation = await quotation.save();
-
-  //     return res.status(200).json({
-  //       success: "Products added successfully to slots",
-  //       data: updatedQuotation,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error adding products to slots:", error.message);
-  //     return res
-  //       .status(500)
-  //       .json({ error: error.message || "Failed to add products to slots" });
-  //   }
-  // }
-
-  // this code is implement with inventory
-
+ 
   // 17-01-22024
 
   async addOntherProductsToSlotstwo(req, res) {
@@ -1949,155 +1735,334 @@ class Quotations {
   }
 
 
-// new code
-async createQuotations(req, res) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-      const {
-          clientId,
-          quoteDate,
-          endDate,
-          quoteTime,
-          clientName,
-          clientNo,
-          address,
-          Products,
-          category,
-          status,
-          GrandTotal,
-          adjustments,
-          discount,
-          termsandCondition,
-          GST,
-          executivename,
-          placeaddress,
-          slots,
-      } = req.body;
-
-      console.log("🔄 Processing Quotation for slot:", quoteTime);
-
-      // ✅ Convert date format to avoid RangeError
-      const formattedQuoteDate = moment(quoteDate, "DD-MM-YYYY").format("DD-MM-YYYY");
-      const formattedEndDate = moment(endDate, "DD-MM-YYYY").format("DD-MM-YYYY");
-
-      // Generate unique quotation ID
-      const latestQuotation = await Quotationmodel.findOne()
-          .sort({ _id: -1 })
-          .session(session);
-
-      const nextQuoteId = latestQuotation
-          ? `QT${(parseInt(latestQuotation.quoteId.replace("QT", ""), 10) + 1)
-              .toString()
-              .padStart(4, "0")}`
-          : "QT0001";
-
-      // 🔥 STEP 1: STRICT INVENTORY CHECK (NO NEGATIVE VALUES ALLOWED)
-      for (const slot of slots) {
-          const { Products, slotName } = slot; // Slot name from Enquiry
-
-          for (const product of Products) {
-              const { productId, quantity } = product;
-
-              // ✅ Fetch product details
-              const productData = await ProductModel.findById(productId).session(session).lean();
-              if (!productData) throw new Error(`Product ${productId} not found.`);
-
-              // ✅ Find all past reservations for this product and slot
-              const existingReservations = await InventoryModel.find({
-                  productId: productId,
-                  slot: slotName,
-                  startdate: { $lte: formattedEndDate },
-                  enddate: { $gte: formattedQuoteDate },
-              }).session(session);
-
-              // ✅ Calculate total reserved quantity for overlapping bookings
-              let totalReservedQty = existingReservations.reduce(
-                  (sum, booking) => sum + booking.reservedQty,
-                  0
-              );
-
-              // ✅ Compute the correct available stock
-              let availableStock = productData.StockAvailable - totalReservedQty;
-
-              // 🚨 **STRICT OVERBOOKING PREVENTION**
-              if (availableStock < quantity) {
-                  await session.abortTransaction();
-                  session.endSession();
-                  return res.status(400).json({
-                      error: `❌ Booking Conflict: 
-                      Product "${productData.ProductName}" is overbooked in Slot "${slotName}".
-                      Available: ${availableStock}, Requested: ${quantity}, Reserved: ${totalReservedQty}.
-                      🚫 No more bookings allowed for this slot.`
-                  });
-              }
-
-              // ✅ Update or create inventory record
-              let existingInventory = await InventoryModel.findOne({
-                  productId,
-                  startdate: formattedQuoteDate,
-                  enddate: formattedEndDate,
-                  slot: slotName
-              }).session(session);
-
-              if (existingInventory) {
-                  existingInventory.reservedQty += quantity;
-                  existingInventory.availableQty = availableStock - quantity;
-                  await existingInventory.save({ session });
-              } else {
-                  const newInventory = new InventoryModel({
-                      productId,
-                      startdate: formattedQuoteDate,
-                      enddate: formattedEndDate,
-                      slot: slotName,
-                      reservedQty: quantity,
-                      availableQty: availableStock - quantity,
-                  });
-
-                  await newInventory.save({ session });
-              }
-          }
+  // 26-03-2025
+  async addOntherProductsToSlotsQuotation(req, res) {
+    const { id, slots } = req.body;
+  
+    console.log("Request Data:", { id, slots });
+  
+    const session = await mongoose.startSession();
+    session.startTransaction();
+  
+    try {
+      const quotation = await Quotationmodel.findOne({ quoteId: id }).session(session);
+  
+      if (!quotation) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ error: "Quotation not found" });
       }
-
-      // 🔥 STEP 2: CREATE QUOTATION AFTER STOCK CONFIRMATION
-      const newQuotation = new Quotationmodel({
-          clientId,
-          quoteId: nextQuoteId,
-          clientName,
-          Products,
-          clientNo,
-          address,
-          category,
-          quoteDate: formattedQuoteDate,
-          quoteTime,
-          termsandCondition,
-          GrandTotal,
-          adjustments,
-          discount,
-          GST,
-          status,
-          executivename,
-          endDate: formattedEndDate,
-          placeaddress,
-          slots,
+  
+      if (!Array.isArray(slots) || slots.length === 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({ error: "Slots must be a non-empty array" });
+      }
+  
+      slots.forEach((newSlot) => {
+        const existingSlotIndex = quotation.slots.findIndex(
+          (slot) => slot.slotName === newSlot.slotName
+        );
+  
+        if (existingSlotIndex === -1) {
+          throw new Error(`Slot ${newSlot.slotName} does not exist.`);
+        }
+  
+        const existingProducts = Array.isArray(
+          quotation.slots[existingSlotIndex].Products
+        )
+          ? quotation.slots[existingSlotIndex].Products
+          : [];
+  
+        const newProducts = Array.isArray(newSlot.Products)
+          ? newSlot.Products
+          : [];
+  
+        newProducts.forEach((newProduct) => {
+          const productQuantity = Number(newProduct.quantity);
+          const productPrice = Number(newProduct.price);
+          const stockAvailable = Number(newProduct.StockAvailable || 0);
+  
+          console.log("Processing Product:", {
+            productId: newProduct.productId,
+            stockAvailable,
+            productQuantity,
+          });
+  
+          if (
+            isNaN(productQuantity) ||
+            isNaN(productPrice) ||
+            isNaN(stockAvailable)
+          ) {
+            console.error(`Invalid product data: ${JSON.stringify(newProduct)}`);
+            return;
+          }
+  
+          const existingProductIndex = existingProducts.findIndex(
+            (product) => product.productId === newProduct.productId
+          );
+  
+          if (existingProductIndex === -1) {
+            existingProducts.push({
+              productId: newProduct.productId,
+              productName: newProduct.productName || "New Product",
+              quantity: productQuantity,
+              price: productPrice,
+              total: productQuantity * productPrice,
+              StockAvailable: stockAvailable,
+            });
+          } else {
+            console.log(`Product ${newProduct.productId} already exists in slot ${newSlot.slotName}, skipping.`);
+          }
+        });
+  
+        quotation.slots[existingSlotIndex].Products = existingProducts;
       });
-
-      await newQuotation.save({ session });
-
-      // ✅ Commit transaction after all checks pass
+  
+      // Final GrandTotal Calculation as per new formula
+      const productTotal = quotation.slots.reduce((total, slot) => {
+        return total + slot.Products.reduce((sum, product) => sum + (Number(product.price) * Number(product.quantity) || 0), 0);
+      }, 0);
+  
+      const discountPercentage = Number(quotation.discount) || 0;
+      const discountAmount = (productTotal * discountPercentage) / 100;
+      const productTotalAfterDiscount = productTotal - discountAmount;
+  
+      const labourCharge = Number(quotation.labourecharge) || 0;
+      const transportCharge = Number(quotation.transportcharge) || 0;
+      const subTotal = productTotalAfterDiscount + labourCharge + transportCharge;
+  
+      const gstRate = Number(quotation.GST) || 0;
+      const gstAmount = subTotal * gstRate;
+  
+      const adjustment = Number(quotation.adjustments) || 0;
+      const finalGrandTotal = subTotal + gstAmount - adjustment;
+  
+      quotation.GrandTotal = Number(finalGrandTotal.toFixed(2));
+  
+      const updatedQuotation = await quotation.save({ session });
+  
+      for (const slot of slots) {
+        const { Products, slotName } = slot;
+        const lastProduct = Products[Products.length - 1];
+        const dataa = [lastProduct];
+  
+        for (const product of dataa) {
+          const { productId, quantity, StockAvailable } = product;
+  
+          const overlappingReservations = await InventoryModel.find({
+            productId,
+            $or: [
+              {
+                startdate: { $lte: quotation.endDate },
+                enddate: { $gte: quotation.quoteDate },
+              },
+            ],
+            slot: slotName,
+          }).session(session);
+  
+          let totalReservedQty = overlappingReservations.reduce(
+            (sum, reservation) => sum + reservation.reservedQty,
+            0
+          );
+  
+          const availableStock = StockAvailable - totalReservedQty;
+  
+          if (availableStock < quantity) {
+            throw new Error(`Insufficient stock for product: ${product.productName} in slot: ${slotName}. Only ${availableStock} available.`);
+          }
+  
+          const existingInventory = await InventoryModel.findOne({
+            productId,
+            startdate: quotation.quoteDate,
+            enddate: quotation.endDate,
+            slot: slotName,
+          }).session(session);
+  
+          if (existingInventory) {
+            existingInventory.reservedQty += quantity;
+            existingInventory.availableQty = availableStock - quantity;
+            await existingInventory.save({ session });
+          } else {
+            const newInventory = new InventoryModel({
+              productId,
+              startdate: quotation.quoteDate,
+              enddate: quotation.endDate,
+              slot: slotName,
+              reservedQty: quantity,
+              availableQty: availableStock - quantity,
+            });
+  
+            await newInventory.save({ session });
+          }
+        }
+      }
+  
       await session.commitTransaction();
       session.endSession();
-
-      return res.json({ success: "✅ Quotation confirmed and inventory locked successfully!" });
-
-  } catch (error) {
+  
+      return res.status(200).json({
+        success: "Products added successfully to slots",
+        data: updatedQuotation,
+      });
+    } catch (error) {
       await session.abortTransaction();
       session.endSession();
-      console.error("❌ Error in quotation creation:", error);
-      return res.status(500).json({ error: error.message || "Failed to create Quotation" });
+      console.error("Error adding products to slots:", error.message);
+      return res.status(500).json({ error: error.message || "Failed to add products to slots" });
+    }
   }
-}
+
+
+// new code
+// async createQuotations(req, res) {
+//   const session = await mongoose.startSession();
+//   session.startTransaction();
+
+//   try {
+//       const {
+//           clientId,
+//           quoteDate,
+//           endDate,
+//           quoteTime,
+//           clientName,
+//           clientNo,
+//           address,
+//           Products,
+//           category,
+//           status,
+//           GrandTotal,
+//           adjustments,
+//           discount,
+//           termsandCondition,
+//           GST,
+//           executivename,
+//           placeaddress,
+//           slots,
+//       } = req.body;
+
+//       console.log("🔄 Processing Quotation for slot:", quoteTime);
+
+//       // ✅ Convert date format to avoid RangeError
+//       const formattedQuoteDate = moment(quoteDate, "DD-MM-YYYY").format("DD-MM-YYYY");
+//       const formattedEndDate = moment(endDate, "DD-MM-YYYY").format("DD-MM-YYYY");
+
+//       // Generate unique quotation ID
+//       const latestQuotation = await Quotationmodel.findOne()
+//           .sort({ _id: -1 })
+//           .session(session);
+
+//       const nextQuoteId = latestQuotation
+//           ? `QT${(parseInt(latestQuotation.quoteId.replace("QT", ""), 10) + 1)
+//               .toString()
+//               .padStart(4, "0")}`
+//           : "QT0001";
+
+//       // 🔥 STEP 1: STRICT INVENTORY CHECK (NO NEGATIVE VALUES ALLOWED)
+//       for (const slot of slots) {
+//           const { Products, slotName } = slot; // Slot name from Enquiry
+
+//           for (const product of Products) {
+//               const { productId, quantity } = product;
+
+//               // ✅ Fetch product details
+//               const productData = await ProductModel.findById(productId).session(session).lean();
+//               if (!productData) throw new Error(`Product ${productId} not found.`);
+
+//               // ✅ Find all past reservations for this product and slot
+//               const existingReservations = await InventoryModel.find({
+//                   productId: productId,
+//                   slot: slotName,
+//                   startdate: { $lte: formattedEndDate },
+//                   enddate: { $gte: formattedQuoteDate },
+//               }).session(session);
+
+//               // ✅ Calculate total reserved quantity for overlapping bookings
+//               let totalReservedQty = existingReservations.reduce(
+//                   (sum, booking) => sum + booking.reservedQty,
+//                   0
+//               );
+
+//               // ✅ Compute the correct available stock
+//               let availableStock = productData.StockAvailable - totalReservedQty;
+
+//               // 🚨 **STRICT OVERBOOKING PREVENTION**
+//               if (availableStock < quantity) {
+//                   await session.abortTransaction();
+//                   session.endSession();
+//                   return res.status(400).json({
+//                       error: `❌ Booking Conflict: 
+//                       Product "${productData.ProductName}" is overbooked in Slot "${slotName}".
+//                       Available: ${availableStock}, Requested: ${quantity}, Reserved: ${totalReservedQty}.
+//                       🚫 No more bookings allowed for this slot.`
+//                   });
+//               }
+
+//               // ✅ Update or create inventory record
+//               let existingInventory = await InventoryModel.findOne({
+//                   productId,
+//                   startdate: formattedQuoteDate,
+//                   enddate: formattedEndDate,
+//                   slot: slotName
+//               }).session(session);
+
+//               if (existingInventory) {
+//                   existingInventory.reservedQty += quantity;
+//                   existingInventory.availableQty = availableStock - quantity;
+//                   await existingInventory.save({ session });
+//               } else {
+//                   const newInventory = new InventoryModel({
+//                       productId,
+//                       startdate: formattedQuoteDate,
+//                       enddate: formattedEndDate,
+//                       slot: slotName,
+//                       reservedQty: quantity,
+//                       availableQty: availableStock - quantity,
+//                   });
+
+//                   await newInventory.save({ session });
+//               }
+//           }
+//       }
+
+//       // 🔥 STEP 2: CREATE QUOTATION AFTER STOCK CONFIRMATION
+//       const newQuotation = new Quotationmodel({
+//           clientId,
+//           quoteId: nextQuoteId,
+//           clientName,
+//           Products,
+//           clientNo,
+//           address,
+//           category,
+//           quoteDate: formattedQuoteDate,
+//           quoteTime,
+//           termsandCondition,
+//           GrandTotal,
+//           adjustments,
+//           discount,
+//           GST,
+//           status,
+//           executivename,
+//           endDate: formattedEndDate,
+//           placeaddress,
+//           slots,
+//       });
+
+//       await newQuotation.save({ session });
+
+//       // ✅ Commit transaction after all checks pass
+//       await session.commitTransaction();
+//       session.endSession();
+
+//       return res.json({ success: "✅ Quotation confirmed and inventory locked successfully!" });
+
+//   } catch (error) {
+//       await session.abortTransaction();
+//       session.endSession();
+//       console.error("❌ Error in quotation creation:", error);
+//       return res.status(500).json({ error: error.message || "Failed to create Quotation" });
+//   }
+// }
 
 
   

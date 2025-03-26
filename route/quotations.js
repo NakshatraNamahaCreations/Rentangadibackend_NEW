@@ -19,4 +19,5 @@ router.post("/add-products", QuotationsController.addProductsToSlots);
 router.post('/addontherproductsameslots', QuotationsController.addOntherProductsToSlots);
 router.put('/updateQuotationquantity', QuotationsController.updateQuotation1);
 router.post('/addontherproductsameslotstwo', QuotationsController.addOntherProductsToSlotstwo);
+router.post('/addontherproductstoSlotsquotation', QuotationsController.addOntherProductsToSlotsQuotation);
 module.exports = router;
