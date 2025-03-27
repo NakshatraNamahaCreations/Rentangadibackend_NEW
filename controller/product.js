@@ -42,21 +42,38 @@ class ProductManagement {
       let file1 = req.files[1]?.filename;
       let file2 = req.files[2]?.filename;
       let file3 = req.files[3]?.filename;
+      
+ console.log(ProductName,
+  ProductCategory,
+  ProductSubcategory,
+  ProductDesc,
+  ProductFeature,
+  ProductPrice,
+  offerPrice,
+  ProductGst,
+  Productdetails,
+  qty,
+  minqty,
+  ProductStock,
+  activeStatus,
+  Material,
+  ProductSize,
+  Color,
+  seater,file,"etst")
+      // const product = await ProductManagementModel.findOne()
+      //   .sort({ ProductSKU: -1 })
+      //   .exec();
+      // const lastProductSku = product ? product.ProductSKU : "SKU001";
 
-      const product = await ProductManagementModel.findOne()
-        .sort({ ProductSKU: -1 })
-        .exec();
-      const lastProductSku = product ? product.ProductSKU : "SKU001";
-
-      console.log("lastProductSku", lastProductSku);
+      // console.log("lastProductSku", lastProductSku);
       // Extract the numeric part and increment it
-      const numericPart = parseInt(lastProductSku.slice(3), 10) + 1;
-      console.log("numericPart", numericPart);
+      // const numericPart = parseInt(lastProductSku.slice(3), 10) + 1;
+      // console.log("numericPart", numericPart);
 
       // Pad the number with leading zeros to ensure it stays 3 digits
-      const newProductSKU = "SKU" + numericPart.toString().padStart(3, "0");
+      // const newProductSKU = "SKU" + numericPart.toString().padStart(3, "0");
 
-      console.log(newProductSKU, "newProductSKU"); // Outputs SKU002, SKU003, etc.
+      // console.log(newProductSKU, "newProductSKU"); // Outputs SKU002, SKU003, etc.
 
       let add = new ProductManagementModel({
         ProductName,
@@ -81,14 +98,15 @@ class ProductManagement {
         ProductImg2: file2,
         ProductImg3: file3,
         activeStatus,
-        ProductSKU: newProductSKU,
+        // ProductSKU: newProductSKU,
       });
-      // console.log(newProductSKU,"ProductSKU")
+      console.log()
       add.save().then((data) => {
         return res
           .status(200)
-          .json({ success: "User added successfully", Product: data });
+          .json({ success: "User added successfully",  data });
       });
+    
     } catch (error) {
       return res.status(500).json({ error: "something went wrong" });
     }
