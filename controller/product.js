@@ -36,7 +36,7 @@ class ProductManagement {
         ProductImg1,
         ProductImg2,
         ProductImg3,
-        ProductSKU,
+        // ProductSKU,
       } = req.body;
       let file = req.files[0]?.filename;
       let file1 = req.files[1]?.filename;
