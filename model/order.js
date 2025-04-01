@@ -106,7 +106,7 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["Confirm", "Approved", "Completed", "Cancelled"], // Ensures only valid statuses
+      enum: ["Confirm", "Approved", "Completed", "cancelled"], // Ensures only valid statuses
       default: "Confirm",
     },
     productrefurbishment:{

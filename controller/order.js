@@ -630,66 +630,7 @@ class order {
     }
   }
 
-  // async getCategorySales(req, res) {
-  //   try {
-  //     const categorySales = await ProductManagementModel.aggregate([
-  //       {
-  //         $lookup: {
-  //           from: "orders", // Join with orders collection
-  //           localField: "_id", // Match ProductId in products collection
-  //           foreignField: "products.ProductId", // Match ProductId in orders
-  //           as: "orderDetails",
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$orderDetails",
-  //           preserveNullAndEmptyArrays: true, // Include products with no orders
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$orderDetails.products",
-  //           preserveNullAndEmptyArrays: true, // Include products with no matching sales
-  //         },
-  //       },
-  //       {
-  //         $match: {
-  //           $expr: { $eq: ["$orderDetails.products.ProductId", "$_id"] }, // Match product IDs
-  //         },
-  //       },
-  //       {
-  //         $group: {
-  //           _id: "$ProductCategory", // Group by ProductCategory
-  //           totalSales: {
-  //             $sum: {
-  //               $cond: [
-  //                 { $ifNull: ["$orderDetails.products.qty", false] },
-  //                 "$orderDetails.products.qty",
-  //                 0, // If no sales, set to 0
-  //               ],
-  //             },
-  //           },
-  //         },
-  //       },
-  //       { $sort: { totalSales: -1 } }, // Sort categories by total sales descending
-  //       {
-  //         $project: {
-  //           categoryName: "$_id", // Rename _id to categoryName
-  //           totalSales: 1,
-  //         },
-  //       },
-  //     ]);
-
-  //     res.status(200).json({
-  //       success: true,
-  //       categorySales,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error calculating category sales:", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // }
+ 
 
   async getHighestAndLowestProductSalesdate(req, res) {
     try {
@@ -817,201 +758,143 @@ class order {
     }
   }
 
-  // async getProductSalesData(req, res) {
-  //   try {
-  //     const { productId } = req.params;
-  //     console.log("ProductId received:", productId);
+// cancelation product
+// async cancelOrder(req, res) {
+//   const { orderId } = req.body;
+//   console.log(orderId, "orderId");
 
-  //     // Validate productId format
-  //     if (!mongoose.Types.ObjectId.isValid(productId)) {
-  //       return res.status(400).json({ error: "Invalid ProductId format" });
-  //     }
+//   try {
+//     const order = await ordermodel.findById(orderId);
+//     if (!order) return res.status(404).json({ error: "Order not found" });
 
-  //     // Convert productId to ObjectId
-  //     const ObjectId = mongoose.Types.ObjectId;
+//     const { slots = [] } = order;
 
-  //     const productObjectId =new ObjectId(productId);
+//     for (const slot of slots) {
+//       const { slotName, quoteDate, endDate, products = [] } = slot;
 
-  //     const productSales = await ordermodel.aggregate([
-  //       {
-  //         $unwind: "$products", // Decompose products array
-  //       },
-  //       {
-  //         $match: {
-  //           "products.ProductId": productObjectId, // Match the productId
-  //         },
-  //       },
-  //       {
-  //         $group: {
-  //           _id: { $dateToString: { format: "%Y-%m-%d", date: "$startDate" } }, // Group by date
-  //           totalSales: { $sum: "$products.qty" }, // Sum quantities sold
-  //         },
-  //       },
-  //       { $sort: { _id: 1 } }, // Sort by date
-  //     ]);
+//       for (const product of products) {
+//         const { productId, quantity } = product;
 
-  //     const formattedData = productSales.map((item) => ({
-  //       date: item._id,
-  //       totalSales: item.totalSales,
-  //     }));
+//         // Update the inventory
+//         const inventory = await InventoryModel.findOne({
+//           productId,
+//           slot: slotName,
+//           startdate: quoteDate,
+//           enddate: endDate,
+//         });
 
-  //     res.status(200).json({
-  //       success: true,
-  //       data: formattedData,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error fetching product sales data:", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // }
+//         if (inventory) {
+//           inventory.reservedQty -= quantity;
+//           inventory.availableQty += quantity;
 
-  // async getHighestAndLowestProductSales(req, res) {
-  //   try {
-  //     const productSales = await ProductManagementModel.aggregate([
-  //       {
-  //         $lookup: {
-  //           from: "orders", // Join with the orders collection
-  //           localField: "_id", // Match ProductId in products
-  //           foreignField: "products.ProductId", // Match ProductId in orders
-  //           as: "orderDetails",
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$orderDetails",
-  //           preserveNullAndEmptyArrays: true, // Include products with no orders
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$orderDetails.products",
-  //           preserveNullAndEmptyArrays: true, // Include products with no matching sales
-  //         },
-  //       },
-  //       {
-  //         $group: {
-  //           _id: "$_id", // Group by ProductId
-  //           productName: { $first: "$ProductName" }, // Product name from the product collection
-  //           totalSales: {
-  //             $sum: {
-  //               $cond: [
-  //                 { $ifNull: ["$orderDetails.products.qty", false] },
-  //                 "$orderDetails.products.qty",
-  //                 0, // If no sales, set to 0
-  //               ],
-  //             },
-  //           },
-  //         },
-  //       },
-  //       { $sort: { totalSales: -1 } }, // Sort by total sales descending
-  //       { $limit: 5 }, // Limit to top 5 products
-  //     ]);
+//           // Ensure values are not negative
+//           inventory.reservedQty = Math.max(0, inventory.reservedQty);
+//           inventory.availableQty = Math.max(0, inventory.availableQty);
 
-  //     res.status(200).json({
-  //       success: true,
-  //       topProducts: productSales,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error calculating product sales:", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // }
+//           await inventory.save();
+//         } else {
+//           console.warn("Inventory not found for:", {
+//             productId,
+//             slot: slotName,
+//             startdate: quoteDate,
+//             enddate: endDate,
+//           });
+//         }
+//       }
+//     }
 
-  // async getHighestAndLowestProductSales(req, res) {
-  //   try {
-  //     const productSales = await ProductManagementModel.aggregate([
-  //       {
-  //         $lookup: {
-  //           from: "orders", // Collection name for orders
-  //           localField: "_id", // ProductId in the product collection
-  //           foreignField: "products.ProductId", // ProductId in the orders collection
-  //           as: "orderDetails",
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$orderDetails",
-  //           preserveNullAndEmptyArrays: true, // Include products with no sales
-  //         },
-  //       },
-  //       {
-  //         $unwind: {
-  //           path: "$orderDetails.products",
-  //           preserveNullAndEmptyArrays: true, // Include products with no sales
-  //         },
-  //       },
-  //       {
-  //         $group: {
-  //           _id: "$_id", // Group by ProductId
-  //           productName: { $first: "$ProductName" }, // Product name from the product collection
-  //           totalSales: {
-  //             $sum: {
-  //               $cond: [
-  //                 { $ifNull: ["$orderDetails.products.qty", false] },
-  //                 "$orderDetails.products.qty",
-  //                 0, // If no sales, set to 0
-  //               ],
-  //             },
-  //           },
-  //         },
-  //       },
-  //       { $sort: { totalSales: -1 } }, // Sort by total sales descending
-  //       { $limit: 5 }, // Limit to top 5 products
-  //     ]);
+//     // Mark the order as cancelled
+//     order.orderStatus = "cancelled";
+//     await order.save();
 
-  //     res.status(200).json({
-  //       success: true,
-  //       topProducts: productSales,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error calculating product sales:", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // }
+//     return res
+//       .status(200)
+//       .json({ message: "Order cancelled and inventory updated." ,});
+//   } catch (err) {
+//     console.error("Error cancelling order:", err);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// }
+async cancelOrder(req, res) {
+  const { orderId } = req.body;
+  console.log("Received Order ID for Cancellation:", orderId);
 
-  // async getHighestAndLowestProductSales(req, res) {
-  //   try {
-  //     const productSales = await ordermodel.aggregate([
-  //       { $unwind: "$products" }, // Decompose products array into individual documents
-  //       {
-  //         $group: {
-  //           _id: "$products.ProductId", // Group by ProductId
-  //           totalSales: { $sum: "$products.qty" }, // Sum the quantity sold
-  //         },
-  //       },
-  //       {
-  //         $lookup: {
-  //           from: "products", // Collection name for products
-  //           localField: "_id", // ProductId from the orders
-  //           foreignField: "_id", // _id in the products collection
-  //           as: "productDetails",
-  //         },
-  //       },
-  //       { $unwind: "$productDetails" }, // Unwind product details
-  //       {
-  //         $project: {
-  //           productName: "$productDetails.ProductName",
-  //           totalSales: 1,
-  //         },
-  //       },
-  //       { $sort: { totalSales: -1 } }, // Sort by total sales descending
+  try {
+    const order = await ordermodel.findById(orderId);
+    if (!order) {
+      console.error("❌ Order not found for ID:", orderId);
+      return res.status(404).json({ error: "Order not found" });
+    }
 
-  //       { $limit: 5 },
-  //     ]);
+    console.log("✅ Found Order:");
+    console.log("Client:", order.clientName);
+    console.log("Slots:", order.slots.length);
 
-  //     const highestSale = productSales[0] || null;
-  //     const lowestSale = productSales[productSales.length - 1] || null;
+    const { slots = [] } = order;
 
-  //     res.status(200).json({
-  //       success: true,
-  //       highestSale,
-  //       lowestSale,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error calculating product sales:", error);
-  //     res.status(500).json({ error: "Internal server error" });
-  //   }
-  // }
+    for (const slot of slots) {
+      console.log(`\n🔄 Processing Slot: ${slot.slotName}`);
+      console.log("Start Date:", slot.quoteDate);
+      console.log("End Date:", slot.endDate);
+      console.log("Products in this slot:", slot.products.length);
+
+      for (const product of slot.products) {
+        const { productId, quantity } = product;
+
+        console.log(`➡️ Updating inventory for Product ID: ${productId}`);
+        console.log("Quantity to return:", quantity);
+
+        const inventory = await InventoryModel.findOne({
+          productId,
+          slot: slot.slotName,
+          startdate: slot.quoteDate,
+          enddate: slot.endDate,
+        });
+
+        if (inventory) {
+          console.log("✅ Found Inventory Before Update:", {
+            reservedQty: inventory.reservedQty,
+            availableQty: inventory.availableQty,
+          });
+
+          inventory.reservedQty = Math.max(0, inventory.reservedQty - quantity);
+          inventory.availableQty = Math.max(0, inventory.availableQty + quantity);
+
+          await inventory.save();
+
+          console.log("✅ Inventory Updated:", {
+            reservedQty: inventory.reservedQty,
+            availableQty: inventory.availableQty,
+          });
+        } else {
+          console.warn("⚠️ Inventory record not found for:", {
+            productId,
+            slot: slot.slotName,
+            startdate: slot.quoteDate,
+            enddate: slot.endDate,
+          });
+        }
+      }
+    }
+
+    // Mark the order as cancelled
+    order.orderStatus = "cancelled";
+    await order.save();
+    console.log("✅ Order status updated to 'cancelled'");
+
+    return res.status(200).json({
+      message: "Order cancelled and inventory updated.",
+    });
+
+  } catch (err) {
+    console.error("🔥 Error cancelling order:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
+
+
+ 
 }
 
 const orderController = new order();

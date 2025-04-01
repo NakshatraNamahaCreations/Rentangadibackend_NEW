@@ -210,6 +210,30 @@ class Inventory {
       res.status(500).json({ message: "Failed to fetch inventory.", error: error.message });
     }
   }
+
+  async getinventorydataprroduct(req, res) {
+    const { slot, startdate, enddate } = req.body;
+    console.log(slot, startdate, enddate, "Request Data");
+  
+    try {
+      const inventory = await InventoryModel.find({
+        slot: slot, 
+        startdate: startdate, 
+        enddate: enddate, 
+      }).populate("productId", "ProductName");
+  
+      if (!inventory) {
+        return res.status(404).json({ error: "No inventory found" });
+      }
+  
+      res.status(200).json({ inventory });
+    } catch (error) {
+      console.error("Error fetching inventory by slot/date:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+  
+  
   
 }
 

@@ -13,4 +13,8 @@ router.get("/products/sales/highest-lowest", orderController.getHighestAndLowest
 router.get("/category/sales/highest-lowest", orderController.getCategorySales);
 router.get("/products/sales/highest-lowest/date", orderController.getHighestAndLowestProductSalesdate);
 router.get("/products/sales/individual/:productId", orderController.getProductSalesData);
+
+// order
+router.post("/cancel-slot",orderController.cancelOrder)
+
 module.exports = router;
